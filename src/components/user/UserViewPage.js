@@ -1,23 +1,13 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import axios from 'axios';
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 
-const TableHead = () => {
-  return (
-    <thead>
-      <tr>
-        <th> description </th>
-        <th> amount </th>
-        <th> unitPrice </th>
-        <th> totalValue </th>
-      </tr>
-    </thead>
-  )
-}
-
-const TableBody = ({ data, id, queryClient }) => {
+/*
+  Debt Components
+*/
+const DebtListTable = ({ data, id, queryClient }) => {
   //const queryClient = useQueryClient();
   const { mutate, isPending, isError, isSuccess } = useMutation({
     mutationFn: deleteDebt,
@@ -26,46 +16,57 @@ const TableBody = ({ data, id, queryClient }) => {
       alert('success');
     },
   });
-  
+
   const handleDelete = (data) => {
     //alert(JSON.stringify(data));
     mutate(data);
   };
-  
+
   return (
-    <tbody>
-      {data.map((item) => {
-        return (
-          <tr key={item._id}>
-            <td> {item.description}</td>
-            <td> {item.amount} </td>
-            <td> {item.unitPrice} </td>
-            <td> {item.totalValue}</td>
-            <td> <button onClick={
-		() => handleDelete({debtID: item._id, userID: id})
-	    }>delete</button> </td>
-          </tr>)
-      })
-      }
-    </tbody>
+    <>
+      <thead>
+        <tr>
+          <th> description </th>
+          <th> amount </th>
+          <th> unitPrice </th>
+          <th> totalValue </th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.map((item) => {
+          return (
+            <tr key={item._id}>
+              <td> {item.description}</td>
+              <td> {item.amount} </td>
+              <td> {item.unitPrice} </td>
+              <td> {item.totalValue}</td>
+              <td> <button onClick={
+                () => handleDelete({ debtID: item._id, userID: id })
+              }>delete</button> </td>
+            </tr>)
+        })
+        }
+      </tbody>
+    </>
   )
 }
+
 const createDebt = (data) => {
   console.log(data, 'darare new debt')
   axios.post('/api/post/postNewDebtForUser', data)
-  .then(data => console.log(data))
-  .catch(err => console.log(err))
+    .then(data => console.log(data))
+    .catch(err => console.log(err))
 }
 
 const deleteDebt = (data) => {
   alert(JSON.stringify(data));
-  axios.delete('/api/delete/deleteDebtItem', { params : data } )
-  .then( () => console.log('delete success'))
-  .catch(err => console.log(err))
+  axios.delete('/api/delete/deleteDebtItem', { params: data })
+    .then(() => console.log('delete success'))
+    .catch(err => console.log(err))
 }
 const options = ["regular diesel", "processed diesel", "super diesel", "regular gasoline", "super gasoline", "kerosine"]
 
-const DebtForm = ({id, queryClient}) => {
+const DebtForm = ({ id, queryClient }) => {
   //const queryClient = useQueryClient();
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
   const { mutate, isPending, isError, isSuccess } = useMutation({
@@ -73,12 +74,13 @@ const DebtForm = ({id, queryClient}) => {
     onSuccess: () => {
       queryClient.invalidateQueries(['userView']);
       alert('success');
+      reset();
     },
   });
 
   const onSubmit = (data) => {
     alert(JSON.stringify(data));
-    mutate({...data, id});
+    mutate({ ...data, id });
   };
   return (
     <form id="form" className="validate" onSubmit={handleSubmit(onSubmit)}>
@@ -112,20 +114,73 @@ const DebtForm = ({id, queryClient}) => {
         <input type="submit" value="Create New Debt entry" />
       </div>
       <h1>
-	  {isPending && 'creating new Entry'}
-	  {isError && 'an error ocurred count create a new entry'}
-	  {isSuccess && 'Created successfully'}
+        {isPending && 'creating new Entry'}
+        {isError && 'an error ocurred count create a new entry'}
+        {isSuccess && 'Created successfully'}
       </h1>
     </form>
   )
 }
-/////
+
+////////////////////////////////
+/*
+  Payment Components
+*/
+
+const PaymentListTable = ({ data, id, queryClient }) => {
+  //const queryClient = useQueryClient();
+  const { mutate, isPending, isError, isSuccess } = useMutation({
+    mutationFn: deletePayment,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['userView']);
+      alert('success');
+    },
+  });
+
+  const handleDelete = (data) => {
+    //alert(JSON.stringify(data));
+    mutate(data);
+  };
+
+  return (
+    <>
+      <thead>
+        <tr>
+          <th> description </th>
+          <th> totalValue </th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.map((item) => {
+          return (
+            <tr key={item._id}>
+              <td> {item.description}</td>
+              <td> {item.totalValue}</td>
+              <td> <button onClick={
+                () => handleDelete({ paymentEntryID: item._id, userID: id })
+              }>delete</button> </td>
+            </tr>)
+        })
+        }
+      </tbody>
+    </>
+  )
+}
+
 const createPayment = (data) => {
   console.log(data, 'darare new payment')
   axios.post('/api/post/postNewPaymentForUser', data)
-  .then(data => console.log(data))                                                        .catch(err => console.log(err))
+    .then(data => console.log(data)).catch(err => console.log(err))
 }
-const PaymentForm = ({id, queryClient}) => {
+
+const deletePayment = (data) => {
+  alert(JSON.stringify(data));
+  axios.delete('/api/delete/deletePaymentItem', { params: data })
+    .then(() => console.log('delete payment success'))
+    .catch(err => console.log(err))
+}
+
+const PaymentForm = ({ id, queryClient }) => {
   //const queryClient = useQueryClient();
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
   const { mutate, isPending, isError, isSuccess } = useMutation({
@@ -133,11 +188,12 @@ const PaymentForm = ({id, queryClient}) => {
     onSuccess: () => {
       queryClient.invalidateQueries(['userView']);
       alert('success');
+      reset();
     },
   });
 
   const onSubmit = (data) => {
-    alert(JSON.stringify(data));                                                            mutate({...data, id});
+    alert(JSON.stringify(data)); mutate({ ...data, id });
   };
   return (
     <form id="form" className="validate" onSubmit={handleSubmit(onSubmit)}>
@@ -145,20 +201,28 @@ const PaymentForm = ({id, queryClient}) => {
         <label htmlFor="paymentAmount">u (US $)</label>
         <input type="number" name="paymentAmount" id="paymentAmount" step='any'
           {...register("paymentAmount", { required: true })} />
-        {errors.unitPrice && <span>This field is required</span>}
+        {errors.paymentAmount && <span>This field is required</span>}
+      </div>
+      <div className="form-field">
+        <label htmlFor="description">Description</label>
+        <input type="text" name="description" id="description" defaultValue={"something"}
+          {...register("description", { required: true })} />
+        {errors.description && <span>This field is required</span>}
       </div>
 
       <div className="form-field">
         <label></label>
         <input type="submit" value="Create New payment entry" />
       </div>
-      <h1>                                                                                        {isPending && 'creating new Entry'}
-          {isError && 'an error ocurred couldnt create a new payment entry'}
-          {isSuccess && 'Created successfully'}                                               </h1>
+      <h1>
+        {isPending && 'creating new Entry'}
+        {isError && 'an error ocurred couldnt create a new payment entry'}
+        {isSuccess && 'Created successfully'}
+      </h1>
     </form>
   )
 }
-/////
+
 export function UserViewPage() {
   const queryClient = useQueryClient();
   const { id } = useParams();
@@ -193,14 +257,21 @@ export function UserViewPage() {
         <div> totalPayment : {data.totalPayment}</div>
         <h2>add new debt</h2>
         <PaymentForm id={id} queryClient={queryClient} />
-	<DebtForm id={id} queryClient={queryClient} />
+        
+        <DebtForm id={id} queryClient={queryClient} />
+        <h2>Debt table</h2>
         <table>
           {
             data.debtList.length > 0 ?
-              (<>
-                <TableHead />
-                <TableBody data={data.debtList} id={id} queryClient={queryClient}/>
-              </>) : (<h5>no data yet</h5>)
+              ( <DebtListTable data={data.debtList} id={id} queryClient={queryClient} />) : (<h5>no data yet</h5>)
+          }
+        </table>
+        <hr />
+        <h2>Payment table</h2>
+        <table>
+          {
+             data.paymentList.length > 0 ?
+            (<PaymentListTable data={data.paymentList} id={id} queryClient={queryClient}/>) :  (<h5>no data yet</h5>)
           }
         </table>
       </div>
